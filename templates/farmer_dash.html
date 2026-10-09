@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <title>Farmer Dashboard</title>
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+      <div class="container">
+        <span class="navbar-brand">Agri-Chain Farmer Panel</span>
+        <div class="d-flex gap-3 align-items-center">
+          <a href="/dashboard" class="text-white fw-bold text-decoration-none"
+            >Notifications</a
+          >
+          <a href="/my_crops" class="text-white text-decoration-none"
+            >Manage Crops</a
+          >
+          <a href="/new_crop" class="text-white text-decoration-none"
+            >Add Crop</a
+          >
+          <a href="/logout" class="btn btn-outline-danger btn-sm ms-3"
+            >Logout</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <div class="container pb-5">
+      <h4 class="mb-4">Pending Actions Required</h4>
+
+      {% if settlements %}
+      <div class="row">
+        {% for s in settlements %}
+        <div class="col-md-6 mb-3">
+          <div class="card shadow-sm border-warning h-100">
+            <div class="card-body">
+              <h6 class="fw-bold">Crop: {{ s.investment.crop.name }}</h6>
+              <div class="bg-light p-3 border rounded">
+                <strong class="text-primary small uppercase">
+                  {% if s.settlement_type == 'interest' %}Investor Bank
+                  Details{% else %}Shipping Information{% endif %}
+                </strong>
+                <ul class="list-group list-group-flush mt-2 bg-transparent">
+                  {% if s.details %} {% for line in s.details.split('\n') %}
+                  <li
+                    class="list-group-item bg-transparent px-0 py-1 small border-0"
+                  >
+                    {{ line }}
+                  </li>
+                  {% endfor %} {% else %}
+                  <li
+                    class="list-group-item bg-transparent px-0 py-1 small border-0 text-danger"
+                  >
+                    No details provided for this settlement.
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+              <div
+                class="bg-light p-3 border rounded text-muted"
+                style="white-space: pre-wrap"
+              >
+                <strong>Details provided by Investor:</strong><br />{{ s.details
+                }}
+              </div>
+              <div class="mt-4 pt-3 border-top">
+    <form action="/resolve_settlement/{{ s.id }}" method="POST" enctype="multipart/form-data">
+        <label class="form-label small fw-bold text-success">Upload Payment/Shipping Receipt</label>
+        <div class="input-group">
+            <input type="file" name="receipt_image" class="form-control form-control-sm" required>
+            <button class="btn btn-sm btn-success px-3">Mark Resolved & Close Contract</button>
+        </div>
+        <p class="text-muted style="font-size: 0.7rem;" class="mt-1">This will notify the investor and archive the contract.</p>
+    </form>
+</div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="alert alert-secondary text-center shadow-sm">
+        You are all caught up! No pending settlements or notifications.
+      </div>
+      {% endif %}
+      <div class="card mb-4 border-success shadow-sm">
+    <div class="card-body text-center">
+        <h5 class="fw-bold">Unsure what to plant?</h5>
+        <p class="text-muted small">Use our AI Soil Advisor to find the most profitable crop for your land.</p>
+        <a href="/ai_advisor" class="btn btn-success">Open AI Lab</a>
+    </div>
+</div>
+    </div>
+  </body>
+</html>

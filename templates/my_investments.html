@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio | Agri-Chain</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom { background-color: #0d6efd; }
+        .card { border-radius: 15px; transition: 0.3s; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .btn-track { border: 2px solid #0d6efd; color: #0d6efd; font-weight: bold; }
+        .btn-track:hover { background-color: #0d6efd; color: white; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom mb-4">
+        <div class="container">
+            <span class="navbar-brand fw-bold">Agri-Chain</span>
+            <div class="d-flex gap-3 align-items-center">
+                <a href="/dashboard" class="text-white text-decoration-none">Marketplace</a>
+                <a href="/my_investments" class="text-white fw-bold text-decoration-none">My Investments</a>
+                <a href="/history" class="text-white text-decoration-none">History</a>
+                <a href="/logout" class="btn btn-outline-light btn-sm ms-3">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        <h4 class="mb-4 fw-bold">My Investment Contracts (Blockchain Verified)</h4>
+        
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-info border-0 shadow-sm">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            {% for inv in investments %}
+            <div class="col-md-6 mb-4">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="fw-bold text-dark mb-0">Crop: {{ inv.crop.name }}</h5>
+                            <span class="badge bg-success">Active</span>
+                        </div>
+                        
+                        <p class="small text-muted text-truncate mb-3">
+                            <strong>Hash:</strong> <code>{{ inv.blockchain_hash }}</code>
+                        </p>
+
+                        <div class="bg-light p-3 rounded border mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Live Growth Status:</span>
+                                <strong class="text-primary">{{ inv.crop.status }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <a href="/track_crop/{{ inv.crop.id }}" class="btn btn-track w-100">
+                                🔍 Track Growth & View Proofs
+                            </a>
+                        </div>
+
+                        {% if inv.crop.status == 'Harvested' and inv.status == 'Active' %}
+                            <div class="alert alert-warning py-2 small mb-3 text-center fw-bold">
+                                🌱 Crop is ready for settlement!
+                            </div>
+                            <div class="d-flex gap-2">
+                                <a href="/settle_contract/{{ inv.id }}/interest" class="btn btn-success flex-grow-1 fw-bold">Claim Interest</a>
+                                <a href="/settle_contract/{{ inv.id }}/physical_crop" class="btn btn-dark flex-grow-1 fw-bold">Buy Full Crop</a>
+                            </div>
+                        {% elif inv.status == 'History' %}
+                            <span class="badge bg-secondary w-100 py-2">Transaction Completed</span>
+                        {% else %}
+                            <div class="text-center p-2 border rounded dashed mt-2">
+                                <small class="text-muted italic">Waiting for farmer to mark as 'Harvested'...</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center text-muted mt-5">
+                <div class="p-5 bg-white rounded shadow-sm">
+                    <p class="mb-0">You haven't made any investments yet.</p>
+                    <a href="/dashboard" class="btn btn-primary mt-3">Browse Marketplace</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

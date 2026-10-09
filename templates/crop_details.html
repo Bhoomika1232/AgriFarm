@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>{{ crop.name | capitalize }} - Details</title>
+    <style>
+        .ai-card {
+            background: #f8fff9;
+            border: 1px border-success;
+            border-radius: 12px;
+        }
+        .timeline-item {
+            border-left: 3px solid #198754;
+            padding-left: 20px;
+            position: relative;
+        }
+        .timeline-dot {
+            height: 12px;
+            width: 12px;
+            background-color: #198754;
+            border-radius: 50%;
+            position: absolute;
+            left: -8px;
+            top: 5px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container">
+            <span class="navbar-brand">Agri-Chain Asset Tracker</span>
+            <a href="/dashboard" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+                    <img src="{{ url_for('static', filename=crop.image_url) }}" class="card-img-top" style="height: 400px; object-fit: cover;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2 class="card-title fw-bold">{{ crop.name | capitalize }}</h2>
+                            <span class="badge bg-primary px-3 py-2">Blockchain ID: #{{ crop.id }}</span>
+                        </div>
+                        <p class="text-muted">Managed by Farmer: <strong>{{ crop.farmer_id }}</strong></p>
+                        
+                        <hr>
+                        
+                        <h5 class="fw-bold mb-3">Technical Soil Metrics (Verified)</h5>
+                        <div class="row text-center bg-light rounded p-3 g-2">
+                            <div class="col-4"><small class="d-block text-muted">Nitrogen (N)</small><strong>{{ crop.n_content }}</strong></div>
+                            <div class="col-4"><small class="d-block text-muted">Phosphorus (P)</small><strong>{{ crop.p_content }}</strong></div>
+                            <div class="col-4"><small class="d-block text-muted">Potassium (K)</small><strong>{{ crop.k_content }}</strong></div>
+                            <div class="col-4 mt-2"><small class="d-block text-muted">pH Level</small><strong>{{ crop.ph }}</strong></div>
+                            <div class="col-4 mt-2"><small class="d-block text-muted">Temp (°C)</small><strong>{{ crop.temp }}</strong></div>
+                            <div class="col-4 mt-2"><small class="d-block text-muted">Rainfall (mm)</small><strong>{{ crop.rainfall }}</strong></div>
+                        </div>
+
+                        <h5 class="fw-bold mt-4 mb-3">Blockchain Growth Timeline</h5>
+                        {% if crop.updates %}
+                            <div class="timeline mt-3">
+                                {% for update in crop.updates | reverse %}
+                                <div class="timeline-item mb-4">
+                                    <div class="timeline-dot"></div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="fw-bold mb-0 text-success">{{ update.status_text }}</h6>
+                                        <small class="text-muted">{{ update.timestamp.strftime('%d %b, %H:%M') }}</small>
+                                    </div>
+                                    {% if update.image_url %}
+                                        <img src="{{ url_for('static', filename=update.image_url) }}" class="img-fluid rounded border mt-2 shadow-sm" style="max-height: 200px;">
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-light border small text-center">Initial listing created. Waiting for farmer growth update.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0 sticky-top" style="top: 20px">
+                    <div class="card-body">
+                        <h4 class="fw-bold mb-4">Investment Overview</h4>
+
+                        <div class="ai-card p-3 mb-4 text-center border border-success">
+                            <h6 class="text-uppercase text-muted fw-bold small mb-2">AI Yield Verification</h6>
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="display-5 fw-bold {% if ai_score > 80 %}text-success{% else %}text-warning{% endif %}">
+                                    {{ ai_score }}%
+                                </div>
+                                <div class="ms-3 text-start">
+                                    <span class="badge {% if ai_score > 80 %}bg-success{% else %}bg-warning text-dark{% endif %} mb-1">
+                                        Verified Match
+                                    </span>
+                                    <p class="small text-muted mb-0">Success Probability</p>
+                                </div>
+                            </div>
+                            <p class="small text-muted mt-3 mb-0" style="font-size: 0.75rem;">
+                                Our ML model suggests a <strong>{{ ai_score }}%</strong> compatibility between the biological needs of {{ crop.name }} and the verified soil parameters.
+                            </p>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Crop Status:</span>
+                            <span class="badge bg-info text-dark">{{ crop.status }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span>Available Capacity:</span>
+                            <strong>{{ crop.total_shares - crop.sold_shares }} Shares left</strong>
+                        </div>
+
+                        <div class="mb-4">
+                            {% set pct = (crop.sold_shares / crop.total_shares) * 100 %}
+                            <label class="small text-muted mb-1">Funding Progress ({{ pct | round | int }}%)</label>
+                            <div class="progress" style="height: 12px">
+                                <div class="progress-bar bg-success" style="width: {{ pct }}%;"></div>
+                            </div>
+                        </div>
+
+                        {% if crop.status == 'Open' %}
+                        <div class="bg-light p-3 rounded border">
+                            <h6 class="mb-3 fw-bold">Sign Investment Contract</h6>
+                            <form action="/invest/{{ crop.id }}" method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label small">Amount of Shares</label>
+                                    <input type="number" name="quantity" class="form-control" value="1" min="1" max="{{ crop.total_shares - crop.sold_shares }}" required>
+                                </div>
+                                <button class="btn btn-success w-100 fw-bold">Execute Transaction</button>
+                            </form>
+                            <div class="text-center mt-3">
+                                <small class="text-muted" style="font-size: 0.7rem;">Verified on Private Blockchain Ledger</small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-secondary text-center fw-bold">Investment Period Closed</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
